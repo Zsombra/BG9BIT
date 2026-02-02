@@ -1,0 +1,25 @@
+node_modules/
+dist/
+
+# Temp/build scripts
+*.py
+nul
+
+# Source zip archives and temp folders
+*.zip
+*.7z
+extracted/
+plane WW2/
+plane WW2.jpg
+sherman tank/
+plane game starter pack/
+USA WW2 GunsV3.png
+
+# Unused public asset folders
+public/bomb/
+public/fire/
+public/plane-fighter/
+public/sherman-tank/
+
+# Claude config
+.claude/
