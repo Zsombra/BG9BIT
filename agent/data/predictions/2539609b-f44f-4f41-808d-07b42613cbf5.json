@@ -5,9 +5,9 @@
   "capturedAt": "2026-07-07T01:50:12.446Z",
   "lockAt": "2026-07-07T13:00:00.000Z",
   "settleAt": "2026-07-07T14:00:00.000Z",
-  "status": "settled",
+  "status": "pending",
   "gridSize": 9,
-  "captainCoinId": "SNDK",
+  "captainCoinId": "xyz_sndk",
   "confidenceScore": 0.912,
   "submitThreshold": 0.6,
   "wouldSubmit": true,
@@ -19,10 +19,10 @@
     "captainWrongPenaltyMultiplier": 2
   },
   "modelName": "bg9bit-quant-v1",
-  "reasoning": "Session: STOCKS OFFENSIVE. Reference regime: bull_expansion (medium conviction).\nGrid: 2 UP / 7 DOWN, selected by expected value (E[|move%|] × calibrated edge).\nCaptain: SNDK DOWN — policy=max_ev, conf 92%, exp move ~1.78% (captain 2× reward and 2× penalty).\nOverall confidence 91% vs submit threshold 60% → would submit.",
+  "reasoning": "Session: STOCKS OFFENSIVE. Reference regime: bull_expansion (medium conviction).\nGrid: 2 UP / 7 DOWN, selected by expected value (E[|move%|] \u00d7 calibrated edge).\nCaptain: SNDK DOWN \u2014 policy=max_ev, conf 92%, exp move ~1.78% (captain 2\u00d7 reward and 2\u00d7 penalty).\nOverall confidence 91% vs submit threshold 60% \u2192 would submit.",
   "picks": [
     {
-      "coinId": "SNDK",
+      "coinId": "xyz_sndk",
       "position": 0,
       "prediction": "DOWN",
       "isCaptain": true,
@@ -32,7 +32,7 @@
       "evRegular": 149.3
     },
     {
-      "coinId": "SMSN",
+      "coinId": "xyz_smsn",
       "position": 1,
       "prediction": "DOWN",
       "isCaptain": false,
@@ -42,7 +42,7 @@
       "evRegular": 141.73
     },
     {
-      "coinId": "RIVN",
+      "coinId": "xyz_rivn",
       "position": 2,
       "prediction": "DOWN",
       "isCaptain": false,
@@ -52,7 +52,7 @@
       "evRegular": 129.66
     },
     {
-      "coinId": "SKHX",
+      "coinId": "xyz_skhx",
       "position": 3,
       "prediction": "DOWN",
       "isCaptain": false,
@@ -62,7 +62,7 @@
       "evRegular": 125.09
     },
     {
-      "coinId": "MU",
+      "coinId": "xyz_mu",
       "position": 4,
       "prediction": "DOWN",
       "isCaptain": false,
@@ -72,7 +72,7 @@
       "evRegular": 114.79
     },
     {
-      "coinId": "MSTR",
+      "coinId": "xyz_mstr",
       "position": 5,
       "prediction": "UP",
       "isCaptain": false,
@@ -82,7 +82,7 @@
       "evRegular": 82.46
     },
     {
-      "coinId": "EWY",
+      "coinId": "xyz_ewy",
       "position": 6,
       "prediction": "DOWN",
       "isCaptain": false,
@@ -92,7 +92,7 @@
       "evRegular": 78.93
     },
     {
-      "coinId": "INTC",
+      "coinId": "xyz_intc",
       "position": 7,
       "prediction": "DOWN",
       "isCaptain": false,
@@ -102,7 +102,7 @@
       "evRegular": 77.32
     },
     {
-      "coinId": "CRCL",
+      "coinId": "xyz_crcl",
       "position": 8,
       "prediction": "UP",
       "isCaptain": false,
@@ -111,100 +111,5 @@
       "edge": 0.2921,
       "evRegular": 71.45
     }
-  ],
-  "graded": {
-    "sessionId": "2539609b-f44f-4f41-808d-07b42613cbf5",
-    "displayName": "STOCKS OFFENSIVE",
-    "capturedAt": "2026-07-07T01:50:12.446Z",
-    "settledAt": "2026-07-07T08:09:22.700Z",
-    "gridSize": 9,
-    "ourConfidence": 0.912,
-    "wouldSubmit": true,
-    "correctCount": 0,
-    "accuracyPct": 0,
-    "ourScore": 0,
-    "maxPossibleScore": 0,
-    "captureEfficiencyPct": 0,
-    "captain": {
-      "coinId": "SNDK",
-      "prediction": "DOWN",
-      "correct": false,
-      "changePct": null,
-      "wasBestInGrid": true
-    },
-    "perPick": [
-      {
-        "coinId": "SNDK",
-        "prediction": "DOWN",
-        "isCaptain": true,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "SMSN",
-        "prediction": "DOWN",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "RIVN",
-        "prediction": "DOWN",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "SKHX",
-        "prediction": "DOWN",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "MU",
-        "prediction": "DOWN",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "MSTR",
-        "prediction": "UP",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "EWY",
-        "prediction": "DOWN",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "INTC",
-        "prediction": "DOWN",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      },
-      {
-        "coinId": "CRCL",
-        "prediction": "UP",
-        "isCaptain": false,
-        "actualChangePct": null,
-        "correct": false,
-        "points": 0
-      }
-    ]
-  }
+  ]
 }
