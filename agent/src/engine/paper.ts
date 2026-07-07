@@ -15,7 +15,7 @@ export interface PaperRecord {
   capturedAt: string;
   lockAt: string;
   settleAt: string;
-  status: "pending" | "settled";
+  status: "pending" | "settled" | "cancelled";
   gridSize: number;
   captainCoinId: string;
   confidenceScore: number;
@@ -261,6 +261,13 @@ export async function settleReady(client: McpClient, outDir: string): Promise<Le
     } catch {
       continue;
     }
+    // Terminal-but-ungradeable: sessions cancelled (e.g. below the player minimum)
+    // never produce results. Mark them so they don't linger as "pending" forever.
+    if (status === "CANCELLED") {
+      rec.status = "cancelled";
+      writeRecord(outDir, rec);
+      continue;
+    }
     if (status !== "SETTLED") continue;
 
     let results: unknown;
@@ -285,6 +292,7 @@ export async function settleReady(client: McpClient, outDir: string): Promise<Le
 export interface PaperReport {
   gradedSessions: number;
   pendingSessions: number;
+  cancelledSessions: number;
   meanAccuracyPct: number;
   meanScore: number;
   meanCaptureEfficiencyPct: number;
@@ -301,6 +309,7 @@ export function buildReport(outDir: string): PaperReport {
   const recs = listRecords(outDir);
   const rows = recs.filter((r) => r.status === "settled" && r.graded).map((r) => r.graded!) as LedgerRow[];
   const pending = recs.filter((r) => r.status === "pending").length;
+  const cancelled = recs.filter((r) => r.status === "cancelled").length;
   const n = rows.length || 1;
   const meanAccuracy = rows.reduce((a, r) => a + r.accuracyPct, 0) / n;
   const meanScore = rows.reduce((a, r) => a + r.ourScore, 0) / n;
@@ -314,6 +323,7 @@ export function buildReport(outDir: string): PaperReport {
   return {
     gradedSessions: rows.length,
     pendingSessions: pending,
+    cancelledSessions: cancelled,
     meanAccuracyPct: Number(meanAccuracy.toFixed(2)),
     meanScore: Number(meanScore.toFixed(1)),
     meanCaptureEfficiencyPct: Number(meanCapture.toFixed(2)),

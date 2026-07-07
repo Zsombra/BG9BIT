@@ -197,7 +197,7 @@ async function cmdPaperRun(client: McpClient, engine: EngineConfig, json: boolea
 function cmdPaperReport(json: boolean) {
   const rep = buildReport(OUT);
   if (json) return log.json(rep);
-  log.info(`Paper report — ${rep.gradedSessions} graded, ${rep.pendingSessions} pending`);
+  log.info(`Paper report — ${rep.gradedSessions} graded, ${rep.pendingSessions} pending, ${rep.cancelledSessions} cancelled`);
   if (rep.gradedSessions === 0) {
     log.info("  No graded sessions yet. Run 'paper:predict' before sessions lock, then 'paper:settle' after they settle.");
     return;
