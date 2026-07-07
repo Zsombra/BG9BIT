@@ -1,0 +1,69 @@
+{
+  // ── External prediction + trade-bias engine (Phase 1) ─────────────────────
+  // Every knob here is safe to tune. The engine NEVER submits unless
+  // execution.live is true AND you pass --live --yes AND the entry fee is within cap.
+  "connection": {
+    "baseUrl": "https://mcp.battlegrid.trade/mcp",
+    "apiKeyEnv": "BATTLEGRID_API_KEY"
+  },
+
+  "analysis": {
+    "candleInterval": "1h", // timeframe used to compute indicators
+    "candleLimit": 100, // max supported by get_coin_candles
+    "rsiPeriod": 14,
+    "macd": [12, 26, 9],
+    "atrPeriod": 14,
+    "emaFast": 5,
+    "emaSlow": 20,
+    // Blend weights for the per-coin directional score (positive = bullish signal).
+    "weights": {
+      "momentum": 1.0, // recent multi-bar drift vs realized volatility
+      "rsi": 0.7, // RSI distance from 50 (trend-following)
+      "macd": 0.9, // MACD histogram sign/strength
+      "trend": 1.0, // EMA spread + short SMA slope, ATR-normalized
+      "meanReversion": 0.4, // only fires at RSI extremes, opposes the trend
+      "relStrength": 0.7, // z-score of the coin's move vs the session pool
+      "regimeAlign": 0.8 // directional prior from the reference-coin regime
+    }
+  },
+
+  "scoring": {
+    "edgeToConfK": 2.2, // confidence = 0.5 + 0.5*tanh(k*|edge|)
+    "confidenceCeil": 0.92, // never claim more than this per-coin
+    "expectedMoveAtrWeight": 0.6 // E[|move%|] = 0.6*ATR% + 0.4*realized abs-return
+  },
+
+  "grid": {
+    // captain policy — how the 2x captain is chosen among the 9 picks:
+    //   max_ev   : highest expected points (default; best risk-adjusted)
+    //   max_vol  : biggest expected mover among confident picks (jackpot/War-Bond hunting)
+    //   balanced : EV weighted by volatility^volGamma
+    //   safe     : highest-confidence pick
+    "captainPolicy": "max_ev",
+    "captainMinConfidence": 0.6, // hard guard against captaining a coin-flip (controls 2x downside)
+    "volGamma": 1.0
+  },
+
+  "regime": {
+    "referenceCoin": "BTC",
+    "timeframe": "4h",
+    "biasTilt": 0.15, // how strongly the regime nudges each coin's direction
+    "gateInChop": true, // in contraction/volatile regimes, damp confidence + raise the bar
+    "chopMinConfidence": 0.7
+  },
+
+  "confidence": {
+    "submitThreshold": 0.6 // overall grid confidence needed before a (gated) submit
+  },
+
+  "bias": {
+    "stopAtrMult": 1.5, // suggested stop distance = ATR% * this
+    "targetAtrMult": 3.0 // suggested target distance = ATR% * this (R:R = target/stop)
+  },
+
+  "execution": {
+    "live": false, // MASTER MONEY SWITCH — false = paper only, submit always refused
+    "maxEntryFeeUsd": 0, // hard cap on entry fee even when live=true
+    "requireYes": true // require an explicit --yes on submit
+  }
+}

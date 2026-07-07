@@ -1,0 +1,63 @@
+{
+  // ── Native BattleGrid Intelligence Agent config-as-code (Phase 2) ─────────
+  // `agent:plan` / `deploy:plan` only READ + diff. Nothing here mutates your
+  // account until you run `agent:apply --live` or `deploy:apply --live --confirm-wager`.
+  "connection": {
+    "baseUrl": "https://mcp.battlegrid.trade/mcp",
+    "apiKeyEnv": "BATTLEGRID_API_KEY"
+  },
+
+  "agent": {
+    // Target agent. Resolved by agentId, else by displayName, else the first agent.
+    "agentId": "8b7e3a18-5e69-4b31-ab25-0862c93cd50b", // "Quadratorum"
+    "displayName": "Quadratorum",
+
+    // Desired end-state. Only fields that DIFFER from the live agent are applied.
+    // These are a PROPOSAL — review `agent:plan` before ever applying.
+    "desired": {
+      // Current live value is BASTOGNE (balanced confluence). NORMANDY leans into
+      // momentum/breakouts, which the EV model rewards (score scales with % move).
+      "strategyPreset": "NORMANDY",
+      // Brain preset bundles model + behavior. Current live is EISENHOWER (GPT-5.2).
+      "brainPreset": "EISENHOWER",
+      // Broaden the lenses the agent reads at decision time. Merged over current.
+      "contextSources": {
+        "includeRegimeContext": true,
+        "includeTrendStrength": true,
+        "includeHigherTimeframe": true,
+        "includeRelativeStrength": true,
+        "includeVolatility": true,
+        "includeMacd": true
+      }
+      // "modelId": "anthropic/claude-sonnet-4.6",  // set brainPreset:"CUSTOM" to use
+      // "behavior": { "risk": "MODERATE", "outlook": "REALIST", "conviction": "MODERATE" },
+      // "overlayText": "Free-form persona / doctrine text."
+    },
+
+    // Optional targeted signal-rule overrides. signalId must be valid and params
+    // must match its schema (inspect with get_agent_signal_rules). Empty = no change.
+    "signalRules": [
+      // { "signalId": "rsi_oversold", "allocation": 2, "params": { "threshold": 30 } }
+    ],
+
+    // Trading config is money-adjacent. Left UNMANAGED so we never touch live
+    // execution/leverage/sizing. Set manage:true (and add fields) to opt in.
+    "tradingConfig": { "manage": false }
+  },
+
+  // Regime-aware auto-play deployment. manage:false so `deploy:apply` stays inert
+  // unless you flip this on AND pass --live --confirm-wager (real-money auto-play).
+  "deployment": {
+    "manage": false,
+    "presetId": "e5221bbb-d111-4f62-8c81-9c75c0eb17cf", // "STOCKS OFFENSIVE"
+    "regimeReferenceCoinId": "BTC",
+    "regimeTimeframe": "4h",
+    // Lowest priority wins; exactly one default (catch-all) slot.
+    "slots": [
+      { "isDefault": false, "priority": 1, "minConfidence": 0.9, "conditions": [{ "kind": "regime", "regimes": ["contraction"] }] },
+      { "isDefault": false, "priority": 2, "minConfidence": 0.72, "conditions": [{ "kind": "regime", "regimes": ["volatile"] }] },
+      { "isDefault": false, "priority": 3, "minConfidence": 0.5, "conditions": [{ "kind": "regime", "regimes": ["bull_expansion", "bear_expansion"] }] },
+      { "isDefault": true, "priority": null, "minConfidence": 0.6, "conditions": [] }
+    ]
+  }
+}
