@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { gradeRecord, type PaperRecord } from "../src/engine/paper.js";
+import { gradeRecord, isGradeableResults, type PaperRecord } from "../src/engine/paper.js";
 
 const params = { changeMultiplier: 100, captainMultiplier: 2, wrongPenaltyMultiplier: 100, captainWrongPenaltyMultiplier: 2 };
 
@@ -59,6 +59,17 @@ test("gradeRecord applies the 2x captain penalty when the captain is wrong", () 
   assert.equal(row.ourScore, -1000 + 200 + 100);
   assert.equal(row.captain.correct, false);
   assert.equal(row.captain.wasBestInGrid, true);
+});
+
+test("isGradeableResults fails closed on unavailable / pending / empty results", () => {
+  // the exact error string the MCP returns for a not-yet-settled session
+  assert.equal(isGradeableResults("Results are not available yet. Session is PENDING."), false);
+  assert.equal(isGradeableResults(null), false);
+  assert.equal(isGradeableResults({ session: { status: "PENDING" }, resolutions: [] }), false);
+  assert.equal(isGradeableResults({ session: { status: "SETTLED" }, resolutions: [] }), false);
+  assert.equal(isGradeableResults({ session: { status: "SETTLED" }, resolutions: [{ coinId: "BTC", changePercent: 1 }] }), true);
+  // settledMarketData fallback also counts
+  assert.equal(isGradeableResults({ settledMarketData: [{ coinId: "BTC", changePercent: 1 }] }), true);
 });
 
 test("gradeRecord tolerates a coin missing from resolutions (no move → wrong, 0 points)", () => {

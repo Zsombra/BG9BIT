@@ -231,35 +231,53 @@ export function gradeRecord(rec: PaperRecord, results: any, settledAt: string): 
   };
 }
 
-/** Grade every pending record whose session has settled; append to the ledger. */
-export async function settleReady(
-  client: McpClient,
-  outDir: string,
-): Promise<LedgerRow[]> {
+/**
+ * A results payload is gradeable only if it's a real object reporting SETTLED
+ * status with a non-empty per-coin resolution set. Anything else (an error
+ * string like "results not available yet", a still-PENDING session, empty
+ * resolutions) is NOT gradeable — grading it would fabricate a 0/0 row.
+ */
+export function isGradeableResults(results: unknown): results is { session?: { status?: string; settledAt?: string }; resolutions?: unknown[]; settledMarketData?: unknown[] } {
+  if (!results || typeof results !== "object") return false;
+  const r = results as any;
+  if (r.session?.status && r.session.status !== "SETTLED") return false;
+  const rows = r.resolutions ?? r.settledMarketData;
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/** Grade every pending record whose session has settled; append to the ledger.
+ *  Fails CLOSED — a session is graded only when we can positively confirm it
+ *  settled with real market data. Transient/unavailable reads are skipped. */
+export async function settleReady(client: McpClient, outDir: string): Promise<LedgerRow[]> {
   const { ledger } = paths(outDir);
   const graded: LedgerRow[] = [];
   for (const rec of listRecords(outDir)) {
     if (rec.status === "settled") continue;
+
+    // Must positively confirm SETTLED status; if we can't read it, skip this cycle.
     let status: string | undefined;
     try {
       status = (await api.session(client, rec.sessionId)).status;
     } catch {
-      /* fall through to results attempt */
+      continue;
     }
-    if (status && status !== "SETTLED") continue;
+    if (status !== "SETTLED") continue;
+
+    let results: unknown;
     try {
-      const results = await api.gridResults(client, rec.sessionId);
-      if (results?.session?.status && results.session.status !== "SETTLED") continue;
-      const settledAt = results?.session?.settledAt ?? new Date().toISOString();
-      const row = gradeRecord(rec, results, settledAt);
-      rec.graded = row;
-      rec.status = "settled";
-      writeRecord(outDir, rec);
-      appendFileSync(ledger, JSON.stringify(row) + "\n");
-      graded.push(row);
+      results = await api.gridResults(client, rec.sessionId);
     } catch {
-      /* not gradeable yet */
+      continue;
     }
+    if (!isGradeableResults(results)) continue;
+
+    const settledAt = (results as any).session?.settledAt ?? rec.settleAt;
+    const row = gradeRecord(rec, results, settledAt);
+    rec.graded = row;
+    rec.status = "settled";
+    writeRecord(outDir, rec);
+    appendFileSync(ledger, JSON.stringify(row) + "\n");
+    graded.push(row);
   }
   return graded;
 }

@@ -83,19 +83,27 @@ export async function runPrediction(
   sessionId: string,
 ): Promise<PredictionResult> {
   const { session, params } = await loadSessionForEngine(client, sessionId);
+  // Candles/scoring key on ticker (e.g. "SNDK"), but grid cells + submissions MUST use
+  // the canonical coin `id` (e.g. "xyz_sndk"); for crypto id===ticker so this is a no-op.
   const tickers = session.coinPool.map((c) => c.ticker ?? c.id);
-  const poolIds = new Set(tickers);
+  const idByTicker = new Map(session.coinPool.map((c) => [c.ticker ?? c.id, c.id]));
+  const canonical = (t: string) => idByTicker.get(t) ?? t;
+  const poolIds = new Set(session.coinPool.map((c) => c.id));
+
   const { scores, regime } = await scorePool(client, engine, tickers, session.timeRangeKey, params);
   const grid = buildGrid(scores, session.gridSize, engine, regime);
-  const problems = validateGrid(grid.cells, session.gridSize, poolIds);
   const reasoning = buildReasoning(grid, session.displayName, regime);
-  const pickReasoning = buildPickReasoning(grid);
+
+  // Remap ticker -> canonical id for everything that gets stored or submitted.
+  const cells = grid.cells.map((c) => ({ ...c, coinId: canonical(c.coinId) }));
+  const problems = validateGrid(cells, session.gridSize, poolIds);
+  const pickReasoning = buildPickReasoning(grid).map((p) => ({ ...p, coinId: canonical(p.coinId) }));
 
   const scoreByTicker = new Map(scores.map((s) => [s.ticker, s]));
   const picks: EnrichedPick[] = grid.cells.map((c) => {
     const s = scoreByTicker.get(c.coinId)!;
     return {
-      coinId: c.coinId,
+      coinId: canonical(c.coinId),
       position: c.position,
       prediction: c.prediction,
       isCaptain: c.isCaptain,
@@ -113,7 +121,7 @@ export async function runPrediction(
     scores,
     grid,
     problems,
-    submission: { sessionId, grid: grid.cells, reasoning, confidenceScore: grid.confidenceScore, modelName: MODEL_NAME, pickReasoning },
+    submission: { sessionId, grid: cells, reasoning, confidenceScore: grid.confidenceScore, modelName: MODEL_NAME, pickReasoning },
     picks,
   };
 }
