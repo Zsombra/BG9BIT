@@ -29,7 +29,8 @@ import { buildSlots, deployArgs, previewResolution, applyDeployment } from "./na
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
-const OUT = resolve(ROOT, "out");
+// Durable paper store (tracked in git so it survives ephemeral container recycles).
+const OUT = resolve(ROOT, "data");
 const DEFAULT_ENGINE_CFG = resolve(ROOT, "config/engine.config.jsonc");
 const DEFAULT_AGENT_CFG = resolve(ROOT, "config/agent.config.jsonc");
 

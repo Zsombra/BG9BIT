@@ -70,7 +70,7 @@ Global flags: `--json` (machine output), `--live` (allow writes),
 | Command | What it does |
 |---|---|
 | `analyze <sessionId>` | Per-coin direction / confidence / expected-move / EV table |
-| `predict <sessionId>` | Build the EV-optimal 9-grid + captain + confidence (saved to `out/`, **not** submitted) |
+| `predict <sessionId>` | Build the EV-optimal 9-grid + captain + confidence (saved to `data/`, **not** submitted) |
 | `bias [--session <id> \| --coins BTC,SOL,…]` | Directional trade-bias signal (per-coin stop/target/RR + market breadth) |
 | `grade <sessionId>` | Grade one saved prediction against settled results (paper score) |
 | `submit <sessionId>` | **Hard-gated**: refused unless `execution.live=true` **and** `--live --yes` **and** fee ≤ cap |
@@ -78,8 +78,8 @@ Global flags: `--json` (machine output), `--live` (allow writes),
 ### Paper-trading loop (no wagers — validates edge before risking money)
 | Command | What it does |
 |---|---|
-| `paper:predict` | Record predictions for every PENDING session not yet captured (to `out/predictions/`) |
-| `paper:settle` | Grade every captured prediction whose session has settled; append to `out/ledger.jsonl` |
+| `paper:predict` | Record predictions for every PENDING session not yet captured (to `data/predictions/`) |
+| `paper:settle` | Grade every captured prediction whose session has settled; append to `data/ledger.jsonl` |
 | `paper:run` | `predict` + `settle` in one pass — the loop step you schedule |
 | `paper:report` | Rolling accuracy / score / capture-efficiency / captain-hit / **calibration gap** (confidence − realized accuracy) |
 
@@ -90,14 +90,19 @@ public results, it never spends money.
 **Scheduling** (each session is 15m/1h/4h, so run the loop a few times an hour):
 
 ```bash
-# cron: capture + grade every 5 minutes
-*/5 * * * * cd /path/to/agent && BATTLEGRID_API_KEY=bg_live_xxx npx tsx src/cli.ts paper:run >> out/paper.log 2>&1
+# cron: capture + grade, then persist the ledger, every 5 minutes
+*/5 * * * * cd /path/to/agent && BATTLEGRID_API_KEY=bg_live_xxx sh -c 'npx tsx src/cli.ts paper:run >> /tmp/paper.log 2>&1 && scripts/persist-paper-data.sh >> /tmp/paper.log 2>&1'
 ```
 
 `paper:predict` must run **before a session locks** (that's when the read is captured);
 `paper:settle` can run any time after it settles. After a day or two, `paper:report`
 tells you whether the engine has real edge and whether its confidence is calibrated —
 the evidence to justify (or reject) turning `execution.live` on or tuning the native agent.
+
+**Durability.** The paper store lives in **`data/`** (tracked in git), not `out/` (ephemeral),
+so predictions and the graded `data/ledger.jsonl` survive a container restart or a fresh
+clone. `scripts/persist-paper-data.sh` commits+pushes `data/` changes on the working branch
+(rebasing first) so accumulated results are never lost when a cloud sandbox is recycled.
 
 ### Phase 2 — native agent config-as-code
 | Command | What it does |
