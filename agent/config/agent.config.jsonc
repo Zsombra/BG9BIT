@@ -49,51 +49,11 @@
     }
   },
   "deployment": {
-    "manage": false,
+    "manage": true,
     "presetId": "e5221bbb-d111-4f62-8c81-9c75c0eb17cf",
-    "regimeReferenceCoinId": "BTC",
-    "regimeTimeframe": "4h",
+    "regimeReferenceCoinId": "xyz_sp500",
+    "regimeTimeframe": "1h",
     "slots": [
-      {
-        "isDefault": false,
-        "priority": 1,
-        "minConfidence": 0.9,
-        "conditions": [
-          {
-            "kind": "regime",
-            "regimes": [
-              "contraction"
-            ]
-          }
-        ]
-      },
-      {
-        "isDefault": false,
-        "priority": 2,
-        "minConfidence": 0.72,
-        "conditions": [
-          {
-            "kind": "regime",
-            "regimes": [
-              "volatile"
-            ]
-          }
-        ]
-      },
-      {
-        "isDefault": false,
-        "priority": 3,
-        "minConfidence": 0.5,
-        "conditions": [
-          {
-            "kind": "regime",
-            "regimes": [
-              "bull_expansion",
-              "bear_expansion"
-            ]
-          }
-        ]
-      },
       {
         "isDefault": true,
         "priority": null,
