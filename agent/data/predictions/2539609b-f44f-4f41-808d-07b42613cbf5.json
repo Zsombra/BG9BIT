@@ -5,7 +5,7 @@
   "capturedAt": "2026-07-07T01:50:12.446Z",
   "lockAt": "2026-07-07T13:00:00.000Z",
   "settleAt": "2026-07-07T14:00:00.000Z",
-  "status": "pending",
+  "status": "cancelled",
   "gridSize": 9,
   "captainCoinId": "xyz_sndk",
   "confidenceScore": 0.912,
@@ -19,7 +19,7 @@
     "captainWrongPenaltyMultiplier": 2
   },
   "modelName": "bg9bit-quant-v1",
-  "reasoning": "Session: STOCKS OFFENSIVE. Reference regime: bull_expansion (medium conviction).\nGrid: 2 UP / 7 DOWN, selected by expected value (E[|move%|] \u00d7 calibrated edge).\nCaptain: SNDK DOWN \u2014 policy=max_ev, conf 92%, exp move ~1.78% (captain 2\u00d7 reward and 2\u00d7 penalty).\nOverall confidence 91% vs submit threshold 60% \u2192 would submit.",
+  "reasoning": "Session: STOCKS OFFENSIVE. Reference regime: bull_expansion (medium conviction).\nGrid: 2 UP / 7 DOWN, selected by expected value (E[|move%|] × calibrated edge).\nCaptain: SNDK DOWN — policy=max_ev, conf 92%, exp move ~1.78% (captain 2× reward and 2× penalty).\nOverall confidence 91% vs submit threshold 60% → would submit.",
   "picks": [
     {
       "coinId": "xyz_sndk",
