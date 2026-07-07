@@ -1,0 +1,115 @@
+{
+  "sessionId": "db74ea01-309b-4939-a11b-3ec3566f3309",
+  "displayName": "BETA ASSAULT",
+  "timeRangeKey": "1H",
+  "capturedAt": "2026-07-07T14:09:42.205Z",
+  "lockAt": "2026-07-08T00:00:00.000Z",
+  "settleAt": "2026-07-08T01:00:00.000Z",
+  "status": "pending",
+  "gridSize": 9,
+  "captainCoinId": "MET",
+  "confidenceScore": 0.7939,
+  "submitThreshold": 0.6,
+  "wouldSubmit": true,
+  "entryFee": 10,
+  "scoringParams": {
+    "changeMultiplier": 100,
+    "captainMultiplier": 2,
+    "wrongPenaltyMultiplier": 100,
+    "captainWrongPenaltyMultiplier": 2
+  },
+  "modelName": "bg9bit-quant-v1",
+  "reasoning": "Session: BETA ASSAULT. Reference regime: bull_ranging (medium conviction).\nGrid: 2 UP / 7 DOWN, selected by expected value (E[|move%|] × calibrated edge).\nCaptain: MET DOWN — policy=max_ev, conf 89%, exp move ~1.29% (captain 2× reward and 2× penalty).\nOverall confidence 79% vs submit threshold 60% → would submit.",
+  "picks": [
+    {
+      "coinId": "MET",
+      "position": 0,
+      "prediction": "DOWN",
+      "isCaptain": true,
+      "confidence": 0.889,
+      "expectedMovePct": 1.2863,
+      "edge": -0.4728,
+      "evRegular": 100.07
+    },
+    {
+      "coinId": "PUMP",
+      "position": 1,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.7606,
+      "expectedMovePct": 1.4983,
+      "edge": -0.2627,
+      "evRegular": 78.1
+    },
+    {
+      "coinId": "CRV",
+      "position": 2,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8324,
+      "expectedMovePct": 1.0671,
+      "edge": -0.3642,
+      "evRegular": 70.93
+    },
+    {
+      "coinId": "APT",
+      "position": 3,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8126,
+      "expectedMovePct": 1.027,
+      "edge": 0.3335,
+      "evRegular": 64.22
+    },
+    {
+      "coinId": "PURR",
+      "position": 4,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8467,
+      "expectedMovePct": 0.9257,
+      "edge": 0.3884,
+      "evRegular": 64.18
+    },
+    {
+      "coinId": "PEPE",
+      "position": 5,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8561,
+      "expectedMovePct": 0.89,
+      "edge": -0.4054,
+      "evRegular": 63.39
+    },
+    {
+      "coinId": "PENGU",
+      "position": 6,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8674,
+      "expectedMovePct": 0.8286,
+      "edge": -0.4269,
+      "evRegular": 60.89
+    },
+    {
+      "coinId": "TRUMP",
+      "position": 7,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8793,
+      "expectedMovePct": 0.7799,
+      "edge": -0.4512,
+      "evRegular": 59.16
+    },
+    {
+      "coinId": "ENA",
+      "position": 8,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.757,
+      "expectedMovePct": 0.9931,
+      "edge": -0.2582,
+      "evRegular": 51.04
+    }
+  ]
+}

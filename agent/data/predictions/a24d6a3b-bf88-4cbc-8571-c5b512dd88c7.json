@@ -5,7 +5,7 @@
   "capturedAt": "2026-07-07T08:09:16.069Z",
   "lockAt": "2026-07-07T14:00:00.000Z",
   "settleAt": "2026-07-07T15:00:00.000Z",
-  "status": "pending",
+  "status": "cancelled",
   "gridSize": 9,
   "captainCoinId": "PUMP",
   "confidenceScore": 0.8733,
