@@ -2,7 +2,7 @@
 /* BattleGrid agent CLI — dry-run/preview by default; money paths are hard-gated. */
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { McpClient } from "./mcp/client.js";
 import { api } from "./mcp/tools.js";
 import {
@@ -13,16 +13,23 @@ import {
   type EngineConfig,
 } from "./core/config.js";
 import { log, setJsonMode, fmtUsd, pct } from "./core/logger.js";
-import { computeFeatures, attachRelativeStrength, type CoinFeatures } from "./ta/features.js";
-import { horizonBars, scoreCoin, scoringParamsFromPreset, type CoinScore } from "./engine/score.js";
-import { buildGrid, buildPickReasoning, validateGrid } from "./engine/grid.js";
+import { scoringParamsFromPreset } from "./engine/score.js";
 import { buildBias } from "./engine/bias.js";
-import { buildReasoning } from "./engine/reasoning.js";
+import { runPrediction, scorePool, loadSessionForEngine } from "./engine/pipeline.js";
+import {
+  recordPending,
+  settleReady,
+  buildReport,
+  savePredictionRecord,
+  readRecord,
+  type LedgerRow,
+} from "./engine/paper.js";
 import { planAgent, planSignalRules, applyAgent, applySignalRules, resolveAgentId } from "./native/agentConfig.js";
 import { buildSlots, deployArgs, previewResolution, applyDeployment } from "./native/deployment.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
+const OUT = resolve(ROOT, "out");
 const DEFAULT_ENGINE_CFG = resolve(ROOT, "config/engine.config.jsonc");
 const DEFAULT_AGENT_CFG = resolve(ROOT, "config/agent.config.jsonc");
 
@@ -56,51 +63,6 @@ function makeClient(cfg: { connection: { baseUrl: string; apiKeyEnv: string } })
   return new McpClient({ url, apiKey });
 }
 
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T, i: number) => Promise<R>): Promise<R[]> {
-  const out: R[] = new Array(items.length);
-  let idx = 0;
-  async function worker() {
-    while (idx < items.length) {
-      const cur = idx++;
-      out[cur] = await fn(items[cur]!, cur);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return out;
-}
-
-// ---------------- shared engine pipeline ----------------
-async function scorePool(
-  client: McpClient,
-  engine: EngineConfig,
-  tickers: string[],
-  sessionTimeRangeKey: string | undefined,
-  params: ReturnType<typeof scoringParamsFromPreset>,
-): Promise<{ scores: CoinScore[]; feats: Map<string, CoinFeatures>; regime: any }> {
-  const regime = await api
-    .regimeSnapshot(client, engine.regime.referenceCoin, engine.regime.timeframe)
-    .catch(() => null);
-  const interval = engine.analysis.candleInterval;
-  const limit = engine.analysis.candleLimit;
-
-  const featList: CoinFeatures[] = [];
-  await mapLimit(tickers, 5, async (t) => {
-    try {
-      const { candles } = await api.candles(client, t, interval, limit);
-      const f = computeFeatures(t, candles ?? []);
-      if (f) featList.push(f);
-    } catch {
-      /* skip coins with no data */
-    }
-  });
-  attachRelativeStrength(featList);
-
-  const hBars = horizonBars(sessionTimeRangeKey, interval);
-  const scores = featList.map((f) => scoreCoin(f, engine, regime, hBars, params));
-  const feats = new Map(featList.map((f) => [f.ticker, f]));
-  return { scores, feats, regime };
-}
-
 // ---------------- commands ----------------
 async function cmdAccount(client: McpClient, json: boolean) {
   const a = await api.accountState(client);
@@ -130,14 +92,6 @@ async function cmdRegime(client: McpClient, engine: EngineConfig, flags: Args["f
   if (r.notice) log.info(`  notice: ${r.notice}`);
 }
 
-async function loadSessionForEngine(client: McpClient, sessionId: string) {
-  const session = await api.session(client, sessionId);
-  const preset =
-    (await api.gamePresets(client).catch(() => [] as any[])).find((p: any) => p.id === session.gamePresetId) ?? null;
-  const params = scoringParamsFromPreset(preset ?? (session as any));
-  return { session, preset, params };
-}
-
 async function cmdAnalyze(client: McpClient, engine: EngineConfig, sessionId: string, json: boolean) {
   const { session, params } = await loadSessionForEngine(client, sessionId);
   const tickers = session.coinPool.map((c) => c.ticker ?? c.id);
@@ -155,31 +109,12 @@ async function cmdAnalyze(client: McpClient, engine: EngineConfig, sessionId: st
 }
 
 async function cmdPredict(client: McpClient, engine: EngineConfig, sessionId: string, json: boolean) {
-  const { session, params } = await loadSessionForEngine(client, sessionId);
-  const tickers = session.coinPool.map((c) => c.ticker ?? c.id);
-  const poolIds = new Set(tickers);
-  const { scores, regime } = await scorePool(client, engine, tickers, session.timeRangeKey, params);
-  const grid = buildGrid(scores, session.gridSize, engine, regime);
-  const problems = validateGrid(grid.cells, session.gridSize, poolIds);
-  const reasoning = buildReasoning(grid, session.displayName, regime);
-  const pickReasoning = buildPickReasoning(grid);
+  const r = await runPrediction(client, engine, sessionId);
+  savePredictionRecord(OUT, r); // persist for later paper-scoring (not submitted)
+  const { grid, regime, problems } = r;
 
-  const submission = {
-    sessionId,
-    grid: grid.cells,
-    reasoning,
-    confidenceScore: grid.confidenceScore,
-    modelName: "bg9bit-quant-v1",
-    pickReasoning,
-  };
-
-  // persist for later paper-scoring
-  const outDir = resolve(ROOT, "out/predictions");
-  mkdirSync(outDir, { recursive: true });
-  writeFileSync(resolve(outDir, `${sessionId}.json`), JSON.stringify({ session: session.displayName, ...submission }, null, 2));
-
-  if (json) return log.json({ ...submission, validation: problems, wouldSubmit: grid.wouldSubmit });
-  log.info(`Predict ${session.displayName} — grid ${session.gridSize}, captain policy ${grid.captainPolicy}`);
+  if (json) return log.json({ ...r.submission, validation: problems, wouldSubmit: grid.wouldSubmit });
+  log.info(`Predict ${r.session.displayName} — grid ${r.session.gridSize}, captain policy ${grid.captainPolicy}`);
   log.info(`Regime: ${regime?.regime ?? "n/a"} (${regime?.conviction ?? "-"})`);
   grid.cells.forEach((c) => {
     const p = grid.picks.find((x) => x.ticker === c.coinId)!;
@@ -217,14 +152,62 @@ async function cmdBias(client: McpClient, engine: EngineConfig, flags: Args["fla
   });
 }
 
+function printLedgerRow(r: LedgerRow) {
+  log.info(`${r.displayName} [${r.sessionId.slice(0, 8)}] — acc ${r.accuracyPct}% (${r.correctCount}/${r.gridSize}), score ${r.ourScore} / max ${r.maxPossibleScore} (capture ${r.captureEfficiencyPct}%)`);
+  log.info(`  captain ${r.captain.coinId} ${r.captain.prediction} ${r.captain.correct ? "✓" : "✗"} move ${r.captain.changePct == null ? "?" : pct(r.captain.changePct)}${r.captain.wasBestInGrid ? " (best mover ★)" : ""} | ourConf ${(r.ourConfidence * 100).toFixed(0)}% wouldSubmit ${r.wouldSubmit}`);
+}
+
 async function cmdGrade(client: McpClient, sessionId: string, json: boolean) {
-  const predPath = resolve(ROOT, "out/predictions", `${sessionId}.json`);
-  if (!existsSync(predPath)) throw new Error(`No saved prediction for ${sessionId}. Run 'predict' first.`);
-  const pred = JSON.parse(readFileSync(predPath, "utf8"));
-  const results = await api.gridResults(client, sessionId);
-  if (json) return log.json({ prediction: pred, results });
-  log.info(`Grade ${sessionId} — results status: ${results?.status ?? "see payload"}`);
-  log.json(results);
+  const rec = readRecord(OUT, sessionId);
+  if (!rec) throw new Error(`No saved prediction for ${sessionId}. Run 'predict' (or 'paper:predict') before the session locks.`);
+  if (rec.status !== "settled") await settleReady(client, OUT);
+  const updated = readRecord(OUT, sessionId);
+  if (json) return log.json(updated?.graded ?? { status: updated?.status ?? "unknown" });
+  if (!updated?.graded) {
+    log.info(`Session ${sessionId} not settled yet (record status: ${updated?.status ?? "unknown"}).`);
+    return;
+  }
+  printLedgerRow(updated.graded);
+}
+
+async function cmdPaperPredict(client: McpClient, engine: EngineConfig, json: boolean) {
+  const res = await recordPending(client, engine, OUT);
+  if (json) return log.json(res);
+  log.info(`paper:predict — recorded ${res.recorded.length} new prediction(s), skipped ${res.skipped.length} (already captured / no data).`);
+  res.recorded.forEach((s) => log.info(`  + ${s}`));
+}
+
+async function cmdPaperSettle(client: McpClient, json: boolean) {
+  const graded = await settleReady(client, OUT);
+  if (json) return log.json(graded);
+  if (!graded.length) return log.info("paper:settle — nothing newly settled.");
+  log.info(`paper:settle — graded ${graded.length} session(s):`);
+  graded.forEach(printLedgerRow);
+}
+
+async function cmdPaperRun(client: McpClient, engine: EngineConfig, json: boolean) {
+  const recorded = await recordPending(client, engine, OUT);
+  const graded = await settleReady(client, OUT);
+  if (json) return log.json({ recorded, graded });
+  log.info(`paper:run — recorded ${recorded.recorded.length} new, graded ${graded.length} settled.`);
+  graded.forEach(printLedgerRow);
+}
+
+function cmdPaperReport(json: boolean) {
+  const rep = buildReport(OUT);
+  if (json) return log.json(rep);
+  log.info(`Paper report — ${rep.gradedSessions} graded, ${rep.pendingSessions} pending`);
+  if (rep.gradedSessions === 0) {
+    log.info("  No graded sessions yet. Run 'paper:predict' before sessions lock, then 'paper:settle' after they settle.");
+    return;
+  }
+  log.info(`  mean accuracy      ${rep.meanAccuracyPct}%`);
+  log.info(`  mean score         ${rep.meanScore} pts   (capture efficiency ${rep.meanCaptureEfficiencyPct}%)`);
+  log.info(`  captain hit rate   ${rep.captainHitRatePct}%   best-in-grid ${rep.captainBestInGridRatePct}%`);
+  log.info(`  would-submit rate  ${rep.wouldSubmitRatePct}%`);
+  log.info(`  mean confidence    ${(rep.meanConfidence * 100).toFixed(0)}%   (calibration gap ${rep.calibrationGapPct >= 0 ? "+" : ""}${rep.calibrationGapPct}pp = conf − accuracy)`);
+  log.info("  recent:");
+  rep.rows.slice(0, 10).forEach(printLedgerRow);
 }
 
 // ---- Phase 2: native agent ----
@@ -344,6 +327,12 @@ Phase 1 — external prediction + bias (dry-run; never submits):
   grade <sessionId>               Compare a saved prediction against settled results (paper score)
   submit <sessionId>              HARD-GATED: refused unless execution.live=true in config + --live + --yes
 
+Paper-trading loop (no wagers — records predictions, grades them at settlement):
+  paper:predict                   Record predictions for all PENDING sessions not yet captured
+  paper:settle                    Grade every captured prediction whose session has settled
+  paper:run                       predict + settle in one pass (schedule this on an interval)
+  paper:report                    Rolling accuracy / score / captain / calibration stats
+
 Phase 2 — native agent config-as-code:
   agent:show                      Current Intelligence Agent config
   agent:plan                      Diff current agent vs agent.config.jsonc (no writes)
@@ -388,6 +377,14 @@ async function main() {
         return await cmdGrade(client, requirePositional(args, "sessionId"), json);
       case "submit":
         return await cmdSubmit(client, engine, args, live);
+      case "paper:predict":
+        return await cmdPaperPredict(client, engine, json);
+      case "paper:settle":
+        return await cmdPaperSettle(client, json);
+      case "paper:run":
+        return await cmdPaperRun(client, engine, json);
+      case "paper:report":
+        return cmdPaperReport(json);
       case "agent:show":
         return await cmdAgentShow(client, loadAgentConfig(agentPath), json);
       case "agent:plan":
@@ -420,12 +417,8 @@ function requirePositional(args: Args, name: string): string {
 
 async function cmdSubmit(client: McpClient, engine: EngineConfig, args: Args, live: boolean) {
   const sessionId = requirePositional(args, "sessionId");
-  const { session, params } = await loadSessionForEngine(client, sessionId);
-  const tickers = session.coinPool.map((c) => c.ticker ?? c.id);
-  const poolIds = new Set(tickers);
-  const { scores, regime } = await scorePool(client, engine, tickers, session.timeRangeKey, params);
-  const grid = buildGrid(scores, session.gridSize, engine, regime);
-  const problems = validateGrid(grid.cells, session.gridSize, poolIds);
+  const r = await runPrediction(client, engine, sessionId);
+  const { session, grid, problems } = r;
 
   // ---- HARD MONEY GATE ----
   const feeOk = (session.entryFee ?? 0) <= engine.execution.maxEntryFeeUsd;
@@ -441,22 +434,14 @@ async function cmdSubmit(client: McpClient, engine: EngineConfig, args: Args, li
   if (reasons.length) {
     log.banner("DRY-RUN");
     log.warn("submit refused — real USDC would be spent. Blockers:");
-    reasons.forEach((r) => log.info(`  • ${r}`));
+    reasons.forEach((x) => log.info(`  • ${x}`));
     log.info("Grid that WOULD be submitted:");
     log.json({ sessionId, grid: grid.cells, confidenceScore: grid.confidenceScore });
     return;
   }
 
   log.banner("LIVE");
-  const submission = {
-    sessionId,
-    grid: grid.cells,
-    reasoning: buildReasoning(grid, session.displayName, regime),
-    confidenceScore: grid.confidenceScore,
-    modelName: "bg9bit-quant-v1",
-    pickReasoning: buildPickReasoning(grid),
-  };
-  const res = await api.submitGrid(client, submission as any);
+  const res = await api.submitGrid(client, r.submission as any);
   log.info("Submitted:");
   log.json(res);
 }
