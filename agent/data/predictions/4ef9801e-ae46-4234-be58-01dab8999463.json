@@ -1,0 +1,115 @@
+{
+  "sessionId": "4ef9801e-ae46-4234-be58-01dab8999463",
+  "displayName": "BETA ASSAULT",
+  "timeRangeKey": "1H",
+  "capturedAt": "2026-07-08T00:09:50.288Z",
+  "lockAt": "2026-07-08T08:00:00.000Z",
+  "settleAt": "2026-07-08T09:00:00.000Z",
+  "status": "pending",
+  "gridSize": 9,
+  "captainCoinId": "LDO",
+  "confidenceScore": 0.9856,
+  "submitThreshold": 0.6,
+  "wouldSubmit": true,
+  "entryFee": 10,
+  "scoringParams": {
+    "changeMultiplier": 100,
+    "captainMultiplier": 2,
+    "wrongPenaltyMultiplier": 100,
+    "captainWrongPenaltyMultiplier": 2
+  },
+  "modelName": "bg9bit-quant-v1",
+  "reasoning": "Session: BETA ASSAULT. Reference regime: bull_ranging (high conviction).\nGrid: 1 UP / 8 DOWN, selected by expected value (E[|move%|] × calibrated edge).\nCaptain: LDO UP — policy=max_ev, conf 92%, exp move ~2.01% (captain 2× reward and 2× penalty).\nOverall confidence 99% vs submit threshold 60% → would submit.",
+  "picks": [
+    {
+      "coinId": "LDO",
+      "position": 0,
+      "prediction": "UP",
+      "isCaptain": true,
+      "confidence": 0.92,
+      "expectedMovePct": 2.0062,
+      "edge": 0.5841,
+      "evRegular": 168.52
+    },
+    {
+      "coinId": "FARTCOIN",
+      "position": 1,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.7492,
+      "edge": -0.6839,
+      "evRegular": 146.93
+    },
+    {
+      "coinId": "PUMP",
+      "position": 2,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.3855,
+      "edge": -0.6701,
+      "evRegular": 116.38
+    },
+    {
+      "coinId": "AAVE",
+      "position": 3,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.2334,
+      "edge": -0.5552,
+      "evRegular": 103.6
+    },
+    {
+      "coinId": "MET",
+      "position": 4,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.1084,
+      "edge": -0.675,
+      "evRegular": 93.1
+    },
+    {
+      "coinId": "APT",
+      "position": 5,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8763,
+      "expectedMovePct": 1.228,
+      "edge": -0.445,
+      "evRegular": 92.42
+    },
+    {
+      "coinId": "HYPE",
+      "position": 6,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.0669,
+      "edge": -0.5745,
+      "evRegular": 89.62
+    },
+    {
+      "coinId": "POPCAT",
+      "position": 7,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.059,
+      "edge": -0.6061,
+      "evRegular": 88.96
+    },
+    {
+      "coinId": "PENGU",
+      "position": 8,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.9093,
+      "expectedMovePct": 0.9931,
+      "edge": -0.524,
+      "evRegular": 81.3
+    }
+  ]
+}
