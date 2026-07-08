@@ -1,0 +1,65 @@
+// Native BattleGrid agent config-as-code — target: Volatilis (CUSTOM hourly volatility-capture).
+// agent:plan diffs this vs the live agent; agent:apply --live applies changes.
+// deployment.manage=false and tradingConfig.manage=false, so nothing auto-deploys or trades.
+
+{
+  "connection": {
+    "baseUrl": "https://mcp.battlegrid.trade/mcp",
+    "apiKeyEnv": "BATTLEGRID_API_KEY"
+  },
+  "agent": {
+    "agentId": "4b7fb23b-f9c2-4ac3-b8dd-248ebe186ed0",
+    "displayName": "Volatilis",
+    "desired": {
+      "strategyPreset": "CUSTOM",
+      "modelId": "anthropic/claude-sonnet-4.6",
+      "behavior": {
+        "risk": "AGGRESSIVE",
+        "outlook": "REALIST",
+        "conviction": "MODERATE"
+      },
+      "contextSources": {
+        "includeSubTimeframe": true,
+        "includeRsi": true,
+        "includeMacd": true,
+        "includeVolume": true,
+        "includeVolatility": true,
+        "includeBollingerBands": true,
+        "includeMovingAverages": true,
+        "includeStochastic": false,
+        "includeFundingRates": true,
+        "includeOpenInterest": true,
+        "includeRelativeStrength": true,
+        "includeSupportResistance": true,
+        "includeTrendStrength": true,
+        "includeMfi": false,
+        "includeHigherTimeframe": true,
+        "includeRegimeContext": true,
+        "includeStructureZones": true,
+        "includeCrowdIntelligence": true,
+        "includeCvd": true,
+        "includeCvdCrowdConvergence": false,
+        "includeMtfConfluence": true
+      },
+      "overlayText": "VOLATILIS \u2014 hourly volatility-capture.\n\nScoring: each correct call earns the coin's absolute % move over the 1h window; a wrong call loses the same; the Captain doubles both. Points come from MAGNITUDE, so hunt the biggest expected 1h movers and get their direction right.\n\nSELECTION \u2014 draft the 9 highest expected-points coins. Rank the pool by expected 1h move size: expanding volatility/ATR, Bollinger band-width squeeze-release, volume surges, open-interest build, and strong relative strength / rate-of-change vs peers \u2014 favoring coins already moving and accelerating on the recent 1h candles and sub-timeframe drift. Skip quiet, low-volatility coins even when direction seems obvious; a correct call on a flat coin barely scores.\n\nDIRECTION \u2014 evidence-based, no house bias. Read momentum (recent 1h candles, MACD, moving-average alignment) and CVD pressure; weigh higher-timeframe trend, trend strength/ADX, regime and multi-timeframe confluence. In trending/expansion regimes follow momentum and clean breakouts through structure zones; in ranging/contracting regimes respect mean-reversion at Bollinger and support/resistance extremes and demand more confluence. Fade over-extended, crowded moves into a level; back clean breakouts on rising participation and funding.\n\nCAPTAIN \u2014 the 2x lever, both ways. Captain the coin with the highest expected points = expected |move| x confidence: it must be BOTH a likely large mover AND high conviction, since a wrong volatile captain is doubled. Never captain a coin-flip. A correct top-moving captain also opens the Jackpot.\n\nCONFIDENCE \u2014 report your true calibrated 0-1 value: higher when volatility, momentum, trend, regime and structure agree; lower when they conflict or the tape is quiet. Never inflate to force a grid; never zero a genuine read."
+    },
+    "signalRules": [],
+    "tradingConfig": {
+      "manage": false
+    }
+  },
+  "deployment": {
+    "manage": true,
+    "presetId": "e5221bbb-d111-4f62-8c81-9c75c0eb17cf",
+    "regimeReferenceCoinId": "xyz_sp500",
+    "regimeTimeframe": "1h",
+    "slots": [
+      {
+        "isDefault": true,
+        "priority": null,
+        "minConfidence": 0.6,
+        "conditions": []
+      }
+    ]
+  }
+}

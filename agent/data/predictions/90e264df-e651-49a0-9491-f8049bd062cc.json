@@ -1,0 +1,115 @@
+{
+  "sessionId": "90e264df-e651-49a0-9491-f8049bd062cc",
+  "displayName": "BETA ASSAULT",
+  "timeRangeKey": "1H",
+  "capturedAt": "2026-07-07T01:49:55.800Z",
+  "lockAt": "2026-07-07T08:00:00.000Z",
+  "settleAt": "2026-07-07T09:00:00.000Z",
+  "status": "cancelled",
+  "gridSize": 9,
+  "captainCoinId": "MET",
+  "confidenceScore": 0.7035,
+  "submitThreshold": 0.6,
+  "wouldSubmit": true,
+  "entryFee": 10,
+  "scoringParams": {
+    "changeMultiplier": 100,
+    "captainMultiplier": 2,
+    "wrongPenaltyMultiplier": 100,
+    "captainWrongPenaltyMultiplier": 2
+  },
+  "modelName": "bg9bit-quant-v1",
+  "reasoning": "Session: BETA ASSAULT. Reference regime: bull_expansion (medium conviction).\nGrid: 7 UP / 2 DOWN, selected by expected value (E[|move%|] × calibrated edge).\nCaptain: MET UP — policy=max_ev, conf 92%, exp move ~1.52% (captain 2× reward and 2× penalty).\nOverall confidence 70% vs submit threshold 60% → would submit.",
+  "picks": [
+    {
+      "coinId": "MET",
+      "position": 0,
+      "prediction": "UP",
+      "isCaptain": true,
+      "confidence": 0.92,
+      "expectedMovePct": 1.5185,
+      "edge": 0.6837,
+      "evRegular": 127.55
+    },
+    {
+      "coinId": "CRV",
+      "position": 1,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.9018,
+      "expectedMovePct": 1.215,
+      "edge": 0.504,
+      "evRegular": 97.64
+    },
+    {
+      "coinId": "HYPE",
+      "position": 2,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8829,
+      "expectedMovePct": 1.0034,
+      "edge": 0.4591,
+      "evRegular": 76.83
+    },
+    {
+      "coinId": "APT",
+      "position": 3,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8486,
+      "expectedMovePct": 0.9237,
+      "edge": 0.3917,
+      "evRegular": 64.4
+    },
+    {
+      "coinId": "LDO",
+      "position": 4,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.7433,
+      "expectedMovePct": 1.2753,
+      "edge": 0.2417,
+      "evRegular": 62.07
+    },
+    {
+      "coinId": "FARTCOIN",
+      "position": 5,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.6404,
+      "expectedMovePct": 1.8684,
+      "edge": 0.1312,
+      "evRegular": 52.47
+    },
+    {
+      "coinId": "AAVE",
+      "position": 6,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.6965,
+      "expectedMovePct": 1.3137,
+      "edge": -0.1888,
+      "evRegular": 51.63
+    },
+    {
+      "coinId": "POPCAT",
+      "position": 7,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.7195,
+      "expectedMovePct": 1.1716,
+      "edge": -0.2141,
+      "evRegular": 51.43
+    },
+    {
+      "coinId": "SOL",
+      "position": 8,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8063,
+      "expectedMovePct": 0.8162,
+      "edge": 0.3241,
+      "evRegular": 50
+    }
+  ]
+}

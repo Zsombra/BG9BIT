@@ -1,0 +1,115 @@
+{
+  "sessionId": "d64cfaf3-104d-4106-bed0-08d17174c31c",
+  "displayName": "BETA ASSAULT",
+  "timeRangeKey": "1H",
+  "capturedAt": "2026-07-08T08:09:44.125Z",
+  "lockAt": "2026-07-08T14:00:00.000Z",
+  "settleAt": "2026-07-08T15:00:00.000Z",
+  "status": "pending",
+  "gridSize": 9,
+  "captainCoinId": "PUMP",
+  "confidenceScore": 0.8345,
+  "submitThreshold": 0.6,
+  "wouldSubmit": true,
+  "entryFee": 10,
+  "scoringParams": {
+    "changeMultiplier": 100,
+    "captainMultiplier": 2,
+    "wrongPenaltyMultiplier": 100,
+    "captainWrongPenaltyMultiplier": 2
+  },
+  "modelName": "bg9bit-quant-v1",
+  "reasoning": "Session: BETA ASSAULT. Reference regime: bull_ranging (medium conviction).\nGrid: 1 UP / 8 DOWN, selected by expected value (E[|move%|] × calibrated edge).\nCaptain: PUMP DOWN — policy=max_ev, conf 91%, exp move ~1.63% (captain 2× reward and 2× penalty).\nOverall confidence 83% vs submit threshold 60% → would submit.",
+  "picks": [
+    {
+      "coinId": "PUMP",
+      "position": 0,
+      "prediction": "DOWN",
+      "isCaptain": true,
+      "confidence": 0.9065,
+      "expectedMovePct": 1.6272,
+      "edge": -0.5164,
+      "evRegular": 132.3
+    },
+    {
+      "coinId": "UNI",
+      "position": 1,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8933,
+      "expectedMovePct": 1.5368,
+      "edge": 0.483,
+      "evRegular": 120.9
+    },
+    {
+      "coinId": "FARTCOIN",
+      "position": 2,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8268,
+      "expectedMovePct": 1.7944,
+      "edge": -0.3553,
+      "evRegular": 117.29
+    },
+    {
+      "coinId": "JUP",
+      "position": 3,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.3582,
+      "edge": -0.6961,
+      "evRegular": 114.09
+    },
+    {
+      "coinId": "PENGU",
+      "position": 4,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.9176,
+      "expectedMovePct": 1.1134,
+      "edge": -0.5479,
+      "evRegular": 93
+    },
+    {
+      "coinId": "MET",
+      "position": 5,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8056,
+      "expectedMovePct": 1.2269,
+      "edge": -0.3232,
+      "evRegular": 75
+    },
+    {
+      "coinId": "PURR",
+      "position": 6,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.7954,
+      "expectedMovePct": 1.138,
+      "edge": -0.3086,
+      "evRegular": 67.24
+    },
+    {
+      "coinId": "ENA",
+      "position": 7,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.7744,
+      "expectedMovePct": 1.2231,
+      "edge": -0.2803,
+      "evRegular": 67.12
+    },
+    {
+      "coinId": "HYPE",
+      "position": 8,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8146,
+      "expectedMovePct": 1.0022,
+      "edge": -0.3363,
+      "evRegular": 63.05
+    }
+  ]
+}

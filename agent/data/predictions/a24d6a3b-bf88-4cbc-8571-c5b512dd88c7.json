@@ -1,0 +1,115 @@
+{
+  "sessionId": "a24d6a3b-bf88-4cbc-8571-c5b512dd88c7",
+  "displayName": "BETA ASSAULT",
+  "timeRangeKey": "1H",
+  "capturedAt": "2026-07-07T08:09:16.069Z",
+  "lockAt": "2026-07-07T14:00:00.000Z",
+  "settleAt": "2026-07-07T15:00:00.000Z",
+  "status": "cancelled",
+  "gridSize": 9,
+  "captainCoinId": "PUMP",
+  "confidenceScore": 0.8733,
+  "submitThreshold": 0.6,
+  "wouldSubmit": true,
+  "entryFee": 10,
+  "scoringParams": {
+    "changeMultiplier": 100,
+    "captainMultiplier": 2,
+    "wrongPenaltyMultiplier": 100,
+    "captainWrongPenaltyMultiplier": 2
+  },
+  "modelName": "bg9bit-quant-v1",
+  "reasoning": "Session: BETA ASSAULT. Reference regime: bull_expansion (medium conviction).\nGrid: 5 UP / 4 DOWN, selected by expected value (E[|move%|] × calibrated edge).\nCaptain: PUMP UP — policy=max_ev, conf 88%, exp move ~1.57% (captain 2× reward and 2× penalty).\nOverall confidence 87% vs submit threshold 60% → would submit.",
+  "picks": [
+    {
+      "coinId": "PUMP",
+      "position": 0,
+      "prediction": "UP",
+      "isCaptain": true,
+      "confidence": 0.8758,
+      "expectedMovePct": 1.5656,
+      "edge": 0.444,
+      "evRegular": 117.68
+    },
+    {
+      "coinId": "MET",
+      "position": 1,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8601,
+      "expectedMovePct": 1.4326,
+      "edge": 0.4127,
+      "evRegular": 103.17
+    },
+    {
+      "coinId": "LDO",
+      "position": 2,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.0972,
+      "edge": 0.5898,
+      "evRegular": 92.17
+    },
+    {
+      "coinId": "ENA",
+      "position": 3,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.9104,
+      "expectedMovePct": 1.0477,
+      "edge": -0.527,
+      "evRegular": 86
+    },
+    {
+      "coinId": "WLFI",
+      "position": 4,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.92,
+      "expectedMovePct": 1.0006,
+      "edge": 0.573,
+      "evRegular": 84.05
+    },
+    {
+      "coinId": "MELANIA",
+      "position": 5,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8707,
+      "expectedMovePct": 1.0166,
+      "edge": -0.4334,
+      "evRegular": 75.37
+    },
+    {
+      "coinId": "CRV",
+      "position": 6,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.7836,
+      "expectedMovePct": 1.1828,
+      "edge": -0.2924,
+      "evRegular": 67.08
+    },
+    {
+      "coinId": "AIXBT",
+      "position": 7,
+      "prediction": "DOWN",
+      "isCaptain": false,
+      "confidence": 0.8277,
+      "expectedMovePct": 0.9574,
+      "edge": -0.3567,
+      "evRegular": 62.75
+    },
+    {
+      "coinId": "APT",
+      "position": 8,
+      "prediction": "UP",
+      "isCaptain": false,
+      "confidence": 0.8328,
+      "expectedMovePct": 0.9067,
+      "edge": 0.3649,
+      "evRegular": 60.35
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "bg9bit-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "BattleGrid trading agent — native-agent config-as-code + external prediction/bias engine over the BattleGrid MCP.",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "bg": "src/cli.ts"
+  },
+  "scripts": {
+    "bg": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
