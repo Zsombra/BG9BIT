@@ -3,25 +3,436 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BG Game - WW2 Battle</title>
+  <meta name="description" content="BG9BIT — Live Bitcoin market battlefield visualization. Watch buy/sell pressure, order book depth, and liquidations drive a real-time battle." />
+  <title>BG9BIT — Crypto Battlefield</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      background: #1a1a2e;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-    #app {
-      border: 2px solid #333;
-      border-radius: 4px;
+      background: #0a0a1a;
       overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+      color: #e0e0e0;
+    }
+
+    /* ---- Loading Screen ---- */
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: #0a0a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      transition: opacity 0.6s ease;
+    }
+    #loading.fade-out { opacity: 0; pointer-events: none; }
+    #loading h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #00f0ff, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 4px;
+    }
+    #loading .progress-bar {
+      width: 240px;
+      height: 3px;
+      background: #1a1a2e;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #loading .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00f0ff, #8b5cf6);
+      transition: width 0.3s ease;
+    }
+    #loading .status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* ---- Battle Canvas ---- */
+    #app {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+    #app canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* ---- HUD Layer (HTML overlay on top of canvas) ---- */
+    #hud {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      pointer-events: none;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .hud-top, .hud-walls, .hud-bottom {
+      pointer-events: none;
+    }
+    #hud button, #hud .hud-depth, #hud .hud-feed, #hud .hud-controls, #hud .hud-wall, #hud .hud-price, #hud .hud-pressure {
+      pointer-events: auto;
+    }
+
+    /* ---- Top Bar ---- */
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 16px 24px;
+    }
+
+    /* UTC Clock */
+    .hud-clock {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      color: #8888aa;
+      letter-spacing: 1px;
+    }
+
+    /* Price Display (center) */
+    .hud-price {
+      text-align: center;
+    }
+    .hud-price .label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #8888aa;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .hud-price .price {
+      font-family: 'Orbitron', monospace;
+      font-size: 42px;
+      font-weight: 700;
+      color: #ffffff;
+      text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+      line-height: 1;
+    }
+    .hud-price .change {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .hud-price .change.up { color: #00ff88; }
+    .hud-price .change.down { color: #ff4466; }
+
+    /* Market Pressure (top-right) */
+    .hud-pressure {
+      text-align: right;
+    }
+    .hud-pressure .pressure-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #8888aa;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .hud-pressure .pressure-status {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .hud-pressure .pressure-status.contested { color: #ffaa00; }
+    .hud-pressure .pressure-status.buyers { color: #00ff88; }
+    .hud-pressure .pressure-status.sellers { color: #ff4466; }
+    .hud-pressure .last-event {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #666;
+      margin-top: 6px;
+      max-width: 300px;
+    }
+
+    /* ---- Wall Displays (left/right edges) ---- */
+    .hud-walls {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 16px;
+      pointer-events: none;
+    }
+
+    .hud-wall {
+      padding: 8px 14px;
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+    }
+    .hud-wall .wall-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      margin-bottom: 2px;
+    }
+    .hud-wall .wall-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .hud-wall.sell {
+      background: rgba(255, 68, 102, 0.1);
+      border: 1px solid rgba(255, 68, 102, 0.3);
+    }
+    .hud-wall.sell .wall-label { color: #ff4466; }
+    .hud-wall.sell .wall-value { color: #ff4466; text-shadow: 0 0 10px rgba(255, 68, 102, 0.4); }
+
+    .hud-wall.buy {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+    }
+    .hud-wall.buy .wall-label { color: #00ff88; }
+    .hud-wall.buy .wall-value { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.4); }
+
+    /* ---- Bottom Panels ---- */
+    .hud-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    /* Depth Chart Panel */
+    .hud-depth {
+      background: rgba(10, 10, 30, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px 16px;
+      backdrop-filter: blur(12px);
+      min-width: 340px;
+      max-width: 400px;
+    }
+    .hud-depth .depth-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .hud-depth .depth-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #8888aa;
+      letter-spacing: 2px;
+    }
+    .hud-depth .depth-source {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #00f0ff;
+    }
+    .hud-depth canvas {
+      width: 100%;
+      height: 120px;
+      border-radius: 4px;
+    }
+    .hud-depth .depth-axis {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    /* Market Feed Panel */
+    .hud-feed {
+      background: rgba(10, 10, 30, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 12px 16px;
+      backdrop-filter: blur(12px);
+      min-width: 340px;
+      max-width: 420px;
+      max-height: 200px;
+    }
+    .hud-feed .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .hud-feed .feed-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #8888aa;
+      letter-spacing: 2px;
+    }
+    .hud-feed .feed-live {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #00ff88;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hud-feed .feed-list {
+      list-style: none;
+      max-height: 150px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #333 transparent;
+    }
+    .hud-feed .feed-list::-webkit-scrollbar { width: 4px; }
+    .hud-feed .feed-list::-webkit-scrollbar-track { background: transparent; }
+    .hud-feed .feed-list::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+    .hud-feed .feed-item {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .feed-item .event-text { color: #aaa; }
+    .feed-item .event-impact { font-weight: 600; white-space: nowrap; }
+    .feed-item .event-impact.bulls { color: #00ff88; }
+    .feed-item .event-impact.bears { color: #ff4466; }
+
+    /* ---- Controls (top-right icons) ---- */
+    .hud-top-right {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .hud-controls {
+      display: flex;
+      gap: 6px;
+    }
+    .hud-controls button {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(10, 10, 30, 0.6);
+      color: #8888aa;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+    }
+    .hud-controls button:hover {
+      border-color: #00f0ff;
+      color: #00f0ff;
+      background: rgba(0, 240, 255, 0.1);
     }
   </style>
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loading">
+    <h1>BG9BIT</h1>
+    <div class="progress-bar">
+      <div class="progress-fill" id="loadProgress"></div>
+    </div>
+    <div class="status" id="loadStatus">Initializing...</div>
+  </div>
+
+  <!-- Battle Canvas -->
   <div id="app"></div>
+
+  <!-- HUD Overlay -->
+  <div id="hud" style="display:none;">
+    <!-- Top Bar -->
+    <div class="hud-top">
+      <div class="hud-clock" id="hudClock">UTC 00:00:00</div>
+      <div class="hud-price">
+        <div class="label">BTC/USD · BINANCE SPOT</div>
+        <div class="price" id="hudPrice">$0.00</div>
+        <div class="change up" id="hudChange">+0.00% 24h</div>
+      </div>
+      <div class="hud-top-right">
+        <div class="hud-pressure">
+          <div class="pressure-label">MARKET PRESSURE</div>
+          <div class="pressure-status contested" id="hudPressure">Contested</div>
+          <div class="last-event" id="hudLastEvent"></div>
+        </div>
+        <div class="hud-controls">
+          <button id="btnStudio" title="Open 3D Asset Studio" style="padding: 0 10px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; width: auto; color: #38bdf8; border-color: rgba(56,189,248,0.4);">🔬 STUDIO</button>
+          <button id="btnRecenter" title="Recenter Camera View">🎯</button>
+          <button id="btnAudio" title="Toggle Battle SFX Audio">🔇</button>
+          <button id="btnFullscreen" title="Toggle Fullscreen">⛶</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buy/Sell Walls -->
+    <div class="hud-walls">
+      <div class="hud-wall sell">
+        <div class="wall-label">SELL WALL</div>
+        <div class="wall-value" id="hudSellWall">$0.0M</div>
+      </div>
+      <div class="hud-wall buy">
+        <div class="wall-label">BUY WALL</div>
+        <div class="wall-value" id="hudBuyWall">$0.0M</div>
+      </div>
+    </div>
+
+    <!-- Bottom Panels -->
+    <div class="hud-bottom">
+      <!-- Depth Chart -->
+      <div class="hud-depth">
+        <div class="depth-header">
+          <span class="depth-title">ORDER BOOK DEPTH</span>
+          <span class="depth-source">BINANCE SPOT</span>
+        </div>
+        <canvas id="depthCanvas" width="360" height="120"></canvas>
+        <div class="depth-axis">
+          <span id="depthLow">$0</span>
+          <span id="depthMid">$0</span>
+          <span id="depthHigh">$0</span>
+        </div>
+        <div class="depth-hint" style="margin-top: 6px; font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #667; display: flex; gap: 8px;">
+          <span><kbd style="background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 3px; color: #00f0ff;">W</kbd> <kbd style="background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 3px; color: #00f0ff;">A</kbd> <kbd style="background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 3px; color: #00f0ff;">S</kbd> <kbd style="background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 3px; color: #00f0ff;">D</kbd> PAN</span>
+          <span><kbd style="background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 3px; color: #00f0ff;">SCROLL</kbd> ZOOM</span>
+          <span><kbd style="background: rgba(255,255,255,0.1); padding: 1px 4px; border-radius: 3px; color: #00f0ff;">DRAG</kbd> ORBIT</span>
+        </div>
+      </div>
+
+      <!-- Market Feed -->
+      <div class="hud-feed">
+        <div class="feed-header">
+          <span class="feed-title">MARKET FEED</span>
+          <span class="feed-live">● LIVE</span>
+        </div>
+        <ul class="feed-list" id="feedList"></ul>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

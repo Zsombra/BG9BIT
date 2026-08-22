@@ -5,6 +5,7 @@ import {
   SOLDIER_SHOOT_COOLDOWN, SOLDIER_SHOOT_COOLDOWN_WINNING,
   SOLDIER_HIT_CHANCE, SOLDIER_HIT_CHANCE_WINNING,
 } from '../constants.js';
+import { soundManager } from '../audio/SoundManager.js';
 
 /**
  * The brain of the battle.
@@ -18,6 +19,7 @@ export class BattleDirector {
     this.baseSpeed = config.baseSpeed || 0.4;
     this.bulletTexture = config.bulletTexture || null;
     this.stage = config.stage || null; // for screen shake
+    this.battlefield = config.battlefield || null;
 
     // Current battle state
     this.currentDirection = null;
@@ -30,6 +32,102 @@ export class BattleDirector {
     // Screen shake
     this.shakeIntensity = 0;
     this.shakeDecay = 8; // how fast shake fades
+
+    // Market data state
+    this.buyWallTotal = 0;
+    this.sellWallTotal = 0;
+    this.marketPressure = 'contested';
+    this.lastLiquidation = null;
+  }
+
+  /**
+   * Handle order book summary update from PriceFeed.
+   * Adjusts battle intensity based on buy/sell wall imbalance.
+   */
+  onOrderBookUpdate({ buyWallTotal, sellWallTotal, pressure }) {
+    this.buyWallTotal = buyWallTotal;
+    this.sellWallTotal = sellWallTotal;
+    this.marketPressure = pressure;
+
+    // Shift front line position
+    if (this.battlefield && buyWallTotal && sellWallTotal) {
+      const total = buyWallTotal + sellWallTotal;
+      const bullRatio = buyWallTotal / total;
+      // High buy ratio -> bulls push toward bear base (left, smaller x)
+      const targetX = CANVAS_WIDTH * (1 - bullRatio);
+      this.battlefield.setFrontLinePosition(targetX);
+    }
+
+    // Stronger buy wall = green advances, stronger sell wall = red advances
+    const ratio = buyWallTotal / (sellWallTotal || 1);
+    if (ratio > 1.15) {
+      this.currentDirection = 'up';
+      this.intensity = Math.min((ratio - 1) * 2, 1);
+    } else if (ratio < 0.85) {
+      this.currentDirection = 'down';
+      this.intensity = Math.min((1 / ratio - 1) * 2, 1);
+    }
+    // If contested, let the price feed drive direction
+  }
+
+  /**
+   * Handle a liquidation event.
+   * Triggers tiered battle effects based on USD size.
+   */
+  onLiquidation({ side, totalUSD, price }) {
+    this.lastLiquidation = { side, totalUSD, price, timestamp: Date.now() };
+
+    // Determine which army gets hit
+    // Liquidated LONG = bulls lose (price went down, longs got rekt)
+    // Liquidated SHORT = bears lose (price went up, shorts got rekt)
+    const hitArmy = side === 'long' ? this.greenArmy : this.redArmy;
+    const winArmy = side === 'long' ? this.redArmy : this.greenArmy;
+
+    // Tier 1: Small liquidation (< $50K) — small explosion
+    if (totalUSD < 50_000) {
+      // Spawn a small explosion near the front line
+      this._spawnBattleExplosion();
+      return;
+    }
+
+    // Tier 2: Medium liquidation ($50K - $150K) — strong attack burst
+    if (totalUSD < 150_000) {
+      winArmy.triggerAttack();
+      this._spawnBattleExplosion();
+      this._spawnBattleExplosion();
+      this.shake(2.5);
+      return;
+    }
+
+    // Tier 3: Large liquidation ($150K - $500K) — heavy assault
+    if (totalUSD < 500_000) {
+      winArmy.triggerAttack();
+      for (let i = 0; i < 4; i++) {
+        setTimeout(() => this._spawnBattleExplosion(), i * 200);
+      }
+      this.shake(4.0);
+
+      // Burst fire from all winning units
+      winArmy.planes.forEach((p) => { if (p.isAlive) p.shootCooldown = 0; });
+      winArmy.tanks.forEach((t) => { if (t.isAlive) t.shootCooldown = 0; });
+      winArmy.soldiers.forEach((s) => { if (s.isAlive) s.shootCooldown = 0; });
+      return;
+    }
+
+    // Tier 4: Massive liquidation (> $500K) — bombardment
+    winArmy.triggerAttack();
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => this._spawnBattleExplosion(), i * 150);
+    }
+    this.shake(6.0);
+
+    // Sustained burst fire
+    winArmy.planes.forEach((p) => { if (p.isAlive) p.shootCooldown = 0; });
+    winArmy.tanks.forEach((t) => { if (t.isAlive) t.shootCooldown = 0; });
+    winArmy.soldiers.forEach((s) => { if (s.isAlive) s.shootCooldown = 0; });
+
+    // Spawn paratrooper for dramatic effect
+    winArmy.spawnParatrooper();
   }
 
   /**
@@ -157,6 +255,7 @@ export class BattleDirector {
 
       plane.attack();
       army.fireBullet(plane, target, this.bulletTexture, shotSpread);
+      soundManager.playLaser(1100 + Math.random() * 300);
 
       // Scattered cooldowns
       plane.shootCooldown = baseCooldown * (0.6 + Math.random() * 0.8);
@@ -208,6 +307,7 @@ export class BattleDirector {
 
       // Fire shell
       army.fireTankShell(tank, target, this.bulletTexture, shotSpread);
+      soundManager.playCannon();
 
       // Subtle screen shake
       this.shake(1.0);
@@ -253,6 +353,7 @@ export class BattleDirector {
       // Trigger shoot animation
       const didShoot = soldier.triggerShoot();
       if (!didShoot) return;
+      soundManager.playLaser(750 + Math.random() * 250);
 
       // Implied hit: chance-based damage on random enemy soldier
       if (enemySoldiers.length > 0 && Math.random() < hitChance) {
@@ -268,6 +369,7 @@ export class BattleDirector {
                 target.container.y - 10
               );
               this.shake(0.5);
+              soundManager.playExplosion(0.5);
             }
           }
         }, 150 + Math.random() * 200);
@@ -341,5 +443,6 @@ export class BattleDirector {
 
     // Subtle shake on ground explosions
     this.shake(0.8);
+    soundManager.playExplosion(0.7);
   }
 }

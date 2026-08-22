@@ -1,6 +1,6 @@
-// Canvas dimensions (matches the trading chart canvas size)
-export const CANVAS_WIDTH = 870;
-export const CANVAS_HEIGHT = 239;
+// Canvas dimensions (16:9 widescreen HD)
+export const CANVAS_WIDTH = 1920;
+export const CANVAS_HEIGHT = 960;
 
 // ============ TANK ASSETS (War Game Kit HD Sherman) ============
 export const TANK_ASSETS = {
@@ -43,64 +43,59 @@ export const BG_ASSETS = {
 // ============ BULLET ============
 export const BULLET_ASSET = 'bullet/bullet.png';
 
-// Army colors
-export const RED_TINT = 0xff4444;
-export const GREEN_TINT = 0x44ff44;
+// Army colors (Sci-Fi Neon Red vs Neon Cyan/Green)
+export const RED_TINT = 0xff3366;
+export const GREEN_TINT = 0x00ff88;
 
-// Ground level (y position where units' feet sit)
-export const GROUND_Y = 205;
+// Ground level (y position where units' feet sit in HD 960p height)
+export const GROUND_Y = 660;
 
 // Battle tuning
-export const TANK_SPEED = 0.5;
+export const TANK_SPEED = 0.8;
 export const SHOOT_FRAME_RATE = 0.08;  // seconds per frame
 export const WALK_FRAME_RATE = 0.1;    // seconds per frame
-export const TANKS_PER_ARMY = 3;
-export const SOLDIERS_PER_ARMY = 4;
-export const PLANES_PER_ARMY = 2;
+export const TANKS_PER_ARMY = 4;
+export const SOLDIERS_PER_ARMY = 6;
+export const PLANES_PER_ARMY = 3;
 
 // Sky / ground split
-export const SKY_HEIGHT = 180;
-export const GROUND_HEIGHT = 59; // CANVAS_HEIGHT - SKY_HEIGHT
-
-// ============ AIRPLANE DAMAGED ASSET (unused — keeping for reference) ============
-// export const AIRPLANE_DAMAGED_ASSETS = {
-//   idle: 'airplane/WW2_fighter_default_damaged.png',
-// };
+export const SKY_HEIGHT = 600;
+export const GROUND_HEIGHT = 360;
 
 // ============ AIR COMBAT TUNING ============
 export const PLANE_MAX_HP = 3;
 export const PLANE_DAMAGED_THRESHOLD = 1;
-export const PLANE_RESPAWN_DELAY = 5;          // seconds
-export const PLANE_SHOOT_COOLDOWN = 1.8;       // seconds (losing side)
-export const PLANE_SHOOT_COOLDOWN_WINNING = 1.0; // seconds (winning side)
-export const PLANE_BULLET_SPEED = 4;
-export const PLANE_HIT_RADIUS = 15;
-export const AIR_EXPLOSION_SCALE = 0.3;
+export const PLANE_RESPAWN_DELAY = 4;          // seconds
+export const PLANE_SHOOT_COOLDOWN = 1.6;       // seconds (losing side)
+export const PLANE_SHOOT_COOLDOWN_WINNING = 0.9; // seconds (winning side)
+export const PLANE_BULLET_SPEED = 6;
+export const PLANE_HIT_RADIUS = 25;
+export const AIR_EXPLOSION_SCALE = 0.6;
 
 // ============ TANK COMBAT TUNING ============
 export const TANK_MAX_HP = 3;
-export const TANK_RESPAWN_DELAY = 6;            // seconds
-export const TANK_SHOOT_COOLDOWN = 2.5;         // seconds (losing side)
-export const TANK_SHOOT_COOLDOWN_WINNING = 1.5; // seconds (winning side)
-export const TANK_SHELL_SPEED = 3;              // pixels per deltaTime
-export const TANK_HIT_RADIUS = 20;              // collision radius
-export const TANK_EXPLOSION_SCALE = 0.5;        // explosion on hit
-export const TANK_SHELL_SCALE = 0.12;           // shell sprite size
+export const TANK_RESPAWN_DELAY = 5;            // seconds
+export const TANK_SHOOT_COOLDOWN = 2.2;         // seconds (losing side)
+export const TANK_SHOOT_COOLDOWN_WINNING = 1.2; // seconds (winning side)
+export const TANK_SHELL_SPEED = 5;              // pixels per deltaTime
+export const TANK_HIT_RADIUS = 30;              // collision radius
+export const TANK_EXPLOSION_SCALE = 0.8;        // explosion on hit
+export const TANK_SHELL_SCALE = 0.2;           // shell sprite size
 
 // ============ SOLDIER COMBAT TUNING ============
 export const SOLDIER_MAX_HP = 2;
-export const SOLDIER_RESPAWN_DELAY = 4;            // seconds
-export const SOLDIER_SHOOT_COOLDOWN = 2.0;         // seconds (losing side)
-export const SOLDIER_SHOOT_COOLDOWN_WINNING = 1.2; // seconds (winning side)
-export const SOLDIER_HIT_CHANCE = 0.15;            // losing side
-export const SOLDIER_HIT_CHANCE_WINNING = 0.30;    // winning side
-export const SOLDIER_EXPLOSION_SCALE = 0.35;       // death explosion
+export const SOLDIER_RESPAWN_DELAY = 3;            // seconds
+export const SOLDIER_SHOOT_COOLDOWN = 1.8;         // seconds (losing side)
+export const SOLDIER_SHOOT_COOLDOWN_WINNING = 1.0; // seconds (winning side)
+export const SOLDIER_HIT_CHANCE = 0.18;            // losing side
+export const SOLDIER_HIT_CHANCE_WINNING = 0.35;    // winning side
+export const SOLDIER_EXPLOSION_SCALE = 0.5;       // death explosion
 
 // ============ FALLING COIN TUNING ============
 export const COIN_DROP_MIN = 3;
-export const COIN_DROP_MAX = 5;
-export const COIN_SCALE = 0.25;
-export const COIN_GRAVITY = 0.06;
+export const COIN_DROP_MAX = 6;
+export const COIN_SCALE = 0.35;
+export const COIN_GRAVITY = 0.08;
 export const HYPERLIQUID_API_URL = 'https://api.hyperliquid.xyz/info';
 export const COIN_ICON_CDN = 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/128/color';
 export const FALLBACK_COINS = [

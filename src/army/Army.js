@@ -16,6 +16,7 @@ import {
   SOLDIER_RESPAWN_DELAY, SOLDIER_EXPLOSION_SCALE,
   COIN_DROP_MIN, COIN_DROP_MAX,
 } from '../constants.js';
+import { soundManager } from '../audio/SoundManager.js';
 
 export class Army {
   /**
@@ -48,7 +49,7 @@ export class Army {
       const tank = new Tank(assets.tank, {
         tint,
         facingRight,
-        scale: 0.325,
+        scale: 0.55,
       });
       this.tanks.push(tank);
       this.container.addChild(tank.container);
@@ -59,19 +60,19 @@ export class Army {
       const soldier = new Soldier(assets.soldier, {
         tint,
         facingRight,
-        scale: 0.385,
+        scale: 0.65,
       });
       this.soldiers.push(soldier);
       this.container.addChild(soldier.container);
     }
 
-    // Create planes (WW2 P-51 Mustang — single sprite + effect overlays)
+    // Create planes (single sprite + effect overlays)
     for (let i = 0; i < PLANES_PER_ARMY; i++) {
       const plane = new Plane(assets.airplane, {
         tint,
         facingRight,
-        speed: 0.5 + Math.random() * 0.3,
-        scale: 0.243,
+        speed: 0.8 + Math.random() * 0.4,
+        scale: 0.45,
       });
       this.planes.push(plane);
       this.container.addChild(plane.container);
@@ -82,28 +83,28 @@ export class Army {
    * Position all units in starting formation.
    */
   setFormation() {
-    const startX = this.side === 'red' ? 100 : CANVAS_WIDTH - 100;
+    const startX = this.side === 'red' ? 220 : CANVAS_WIDTH - 220;
     const dir = this.side === 'red' ? 1 : -1;
 
     // Tanks in front row (staggered)
     this.tanks.forEach((tank, i) => {
-      const x = startX + dir * i * 50;
-      const y = GROUND_Y - 2 + (i % 2) * 6;
+      const x = startX + dir * i * 85;
+      const y = GROUND_Y - 5 + (i % 2) * 12;
       tank.setPosition(x, y);
     });
 
     // Soldiers behind tanks
     this.soldiers.forEach((soldier, i) => {
-      const x = startX - dir * 30 + dir * i * 30;
-      const y = GROUND_Y + 2 + (i % 2) * 5;
+      const x = startX - dir * 60 + dir * i * 45;
+      const y = GROUND_Y + 5 + (i % 2) * 10;
       soldier.setPosition(x, y);
     });
 
     // Planes in the sky
     this.planes.forEach((plane, i) => {
-      const y = 30 + i * 30;
+      const y = 80 + i * 80;
       plane.container.position.set(
-        startX + dir * i * 120,
+        startX + dir * i * 180,
         y,
       );
       plane.setBaseY(y);
@@ -267,6 +268,7 @@ export class Army {
       const layer = this.effectsLayer || this.container;
       layer.addChild(coin.sprite);
     }
+    soundManager.playCoin();
   }
 
   // ========== PARATROOPERS ==========
@@ -344,8 +346,8 @@ export class Army {
         tank.respawnTimer += deltaTime / 60;
         if (tank.respawnTimer >= TANK_RESPAWN_DELAY) {
           // Respawn at army's starting side
-          const startX = this.side === 'red' ? 60 : CANVAS_WIDTH - 60;
-          const y = GROUND_Y - 2 + Math.random() * 6;
+          const startX = this.side === 'red' ? 120 : CANVAS_WIDTH - 120;
+          const y = GROUND_Y - 5 + Math.random() * 12;
           tank.respawn(startX, y);
         }
       }
@@ -356,8 +358,8 @@ export class Army {
       if (soldier.state === 'dead') {
         soldier.respawnTimer += deltaTime / 60;
         if (soldier.respawnTimer >= SOLDIER_RESPAWN_DELAY) {
-          const startX = this.side === 'red' ? 80 : CANVAS_WIDTH - 80;
-          const y = GROUND_Y + 2 + Math.random() * 5;
+          const startX = this.side === 'red' ? 150 : CANVAS_WIDTH - 150;
+          const y = GROUND_Y + 5 + Math.random() * 10;
           soldier.respawn(startX, y);
         }
       }
